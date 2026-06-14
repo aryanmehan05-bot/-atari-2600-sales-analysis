@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Atari 2600 — Game Sales Analysis</title>
+
+  <!-- chart.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+
+  <style>
+    :root {
+      --bg:        #1a2b4a;
+      --panel:     #0f1e35;
+      --border:    #185FA5;
+      --accent:    #378ADD;
+      --text:      #ffffff;
+      --muted:     #aaaaaa;
+      --grid:      rgba(255, 255, 255, 0.07);
+
+      /* categorical palette */
+      --c-blue:    #185FA5;
+      --c-green:   #1D9E75;
+      --c-coral:   #D85A30;
+      --c-pink:    #D4537E;
+      --c-amber:   #BA7517;
+      --c-gray:    #888780;
+      --c-orange:  #ED7D31;
+      --c-purple:  #534AB7;
+      --c-teal:    #0F6E56;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 24px;
+    }
+
+    /* page header */
+    header.page-header { text-align: center; margin-bottom: 28px; }
+    header.page-header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    header.page-header p  { font-size: 13px; color: var(--muted); }
+
+    /* section titles */
+    h2.section-title {
+      font-size: 13px;
+      font-weight: 600;
+      background: var(--panel);
+      border-left: 4px solid var(--accent);
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      border-radius: 3px;
+    }
+
+    /* KPI row */
+    .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px; }
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+      text-align: center;
+    }
+    .kpi-value { font-size: 22px; font-weight: 600; color: var(--accent); }
+    .kpi-label { font-size: 11px; color: var(--muted); margin-top: 3px; }
+
+    /* chart grids */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+
+    /* individual chart card */
+    .card { background: var(--panel); border-radius: 6px; padding: 14px; }
+    .card h3 {
+      font-size: 11px;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 12px;
+    }
+
+    /* peak-year callout */
+    .callout {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 16px;
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      margin-bottom: 12px;
+    }
+    .callout-number { font-size: 52px; font-weight: 300; color: var(--accent); flex-shrink: 0; }
+    .callout-text p    { font-size: 13px; font-weight: 500; margin-bottom: 4px; }
+    .callout-text span { font-size: 11px; color: var(--muted); }
+
+    .section-spacer { margin-bottom: 36px; }
+  </style>
+</head>
+<body>
+
+  <header class="page-header">
+    <h1>Atari 2600 — Game Sales Analysis</h1>
+    <p>500 titles · 126 with sales data · Platform era: 1977–1990</p>
+  </header>
+
+  <!-- ─── Section 1: Publisher dominance & timeline ─── -->
+  <section class="section-spacer">
+    <h2 class="section-title">Publisher Dominance &amp; Sales Over Time</h2>
+
+    <div class="kpis">
+      <div class="kpi"><div class="kpi-value">75.7M</div><div class="kpi-label">Total units sold</div></div>
+      <div class="kpi"><div class="kpi-value">93.3%</div><div class="kpi-label">America's share</div></div>
+      <div class="kpi"><div class="kpi-value">1982</div><div class="kpi-label">Peak year</div></div>
+      <div class="kpi"><div class="kpi-value">25.1%</div><div class="kpi-label">Top 10 games share</div></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>1. Publisher Market Share (%)</h3>
+        <div style="position:relative;height:260px;"><canvas id="chartPublisherShare"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>2. Annual Sales Volume (M units)</h3>
+        <div style="position:relative;height:260px;"><canvas id="chartAnnualSales"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Section 2: Regional, power law, ecosystem ─── -->
+  <section class="section-spacer">
+    <h2 class="section-title">Regional Patterns, Power Law &amp; Ecosystem Effect</h2>
+
+    <div class="grid-3">
+      <div class="card">
+        <h3>3. Regional Sales (M units)</h3>
+        <div style="position:relative;height:200px;"><canvas id="chartRegional"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>4. Atari vs Third-Party Sales by Year</h3>
+        <div style="position:relative;height:200px;"><canvas id="chartFirstVsThirdParty"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>5. Sales Distribution — Game Count per Band</h3>
+        <div style="position:relative;height:200px;"><canvas id="chartSalesDistribution"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>6. Top 15 Games by Total Sales (M units)</h3>
+        <div style="position:relative;height:400px;"><canvas id="chartTopGames"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>7. Sales Concentration — Pareto Curve</h3>
+        <div style="position:relative;height:400px;"><canvas id="chartPareto"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Section 3: Geography, catalogue, peak year ─── -->
+  <section class="section-spacer">
+    <h2 class="section-title">Geographic Lock-in, Catalogue Efficiency &amp; 1982 Peak Year</h2>
+
+    <div class="grid-3">
+      <div class="card">
+        <h3>8. America's Share of Sales per Publisher (%)</h3>
+        <div style="position:relative;height:220px;"><canvas id="chartAmericaShare"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>9. Publisher Titles Released vs Total Sales</h3>
+        <div style="position:relative;height:220px;"><canvas id="chartTitlesVsSales"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>10. Peak Year 1982 — Publisher Mix</h3>
+        <div style="position:relative;height:220px;"><canvas id="chartPeakYear"></canvas></div>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-number">73%</div>
+      <div class="callout-text">
+        <p>In the peak year 1982, of all sales came from third-party publishers — not Atari itself.</p>
+        <span>Top 5 games = 15.5% of all-time platform sales · Asteroids: 4.31M units — the best-selling title</span>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    /* ----------------------------------------------------------------
+       Atari 2600 sales dashboard
+       Data: VGChartz video games dataset, Atari 2600 platform
+       ---------------------------------------------------------------- */
+
+    // pull colors from CSS custom properties so palette stays in one place
+    const css = getComputedStyle(document.documentElement);
+    const color = (name) => css.getPropertyValue(name).trim();
+
+    const palette = {
+      blue:   color('--c-blue'),
+      green:  color('--c-green'),
+      coral:  color('--c-coral'),
+      pink:   color('--c-pink'),
+      amber:  color('--c-amber'),
+      gray:   color('--c-gray'),
+      orange: color('--c-orange'),
+      purple: color('--c-purple'),
+      teal:   color('--c-teal'),
+      accent: color('--accent'),
+      panel:  color('--panel'),
+      muted:  color('--muted'),
+      grid:   color('--grid'),
+    };
+
+    // shared defaults so every chart picks up the same styling
+    const axisStyle = {
+      ticks: { color: palette.muted, font: { size: 10 } },
+      grid:  { color: palette.grid },
+    };
+
+    const baseOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+    };
+
+    // small helper to make axis tick formatters readable
+    const fmt = {
+      millions: (v) => `${v}M`,
+      percent:  (v) => `${v}%`,
+    };
+
+    /* ─── DATA ─────────────────────────────────────────────────────── */
+
+    // publisher market share — % of total platform sales
+    const publisherShare = {
+      labels: ['Atari', 'Activision', 'Imagic', 'Coleco', 'Mattel', 'Other'],
+      values: [45.9, 20.2, 6.4, 5.3, 3.9, 18.4],
+    };
+
+    // annual sales volume (millions of units)
+    const annualSales = {
+      years:  ['1977', '1978', '1980', '1981', '1982', '1983', '1984', '1985', '1987', '1988', '1989'],
+      values: [2.5, 2.36, 2.26, 7.73, 28.99, 22.68, 4.16, 0.45, 1.2, 1.58, 0.71],
+    };
+
+    // regional split
+    const regional = {
+      labels: ['America', 'Europe', 'Other'],
+      values: [70.62, 4.25, 0.69],
+    };
+
+    // Atari (first-party) vs third-party publishers, by year
+    const firstVsThird = {
+      years:      ['1977', '1978', '1980', '1981', '1982', '1983', '1984'],
+      atari:      [2.5, 2.15, 0.71, 5.36, 8.26, 10.84, 3.39],
+      thirdParty: [0,   0.21, 1.55, 2.37, 20.73, 11.84, 0.77],
+    };
+
+    // sales distribution histogram
+    const distribution = {
+      bands:  ['<0.2M', '0.2-0.4', '0.4-0.6', '0.6-0.8', '0.8-1.0', '1.0-1.5', '1.5-2.0', '>2.0M'],
+      counts: [28, 30, 22, 14, 8, 11, 4, 9],
+    };
+
+    // top 15 best-selling titles
+    const topGames = {
+      names: [
+        'Asteroids', 'Demon Attack', 'E.T.', 'Ms. Pac-Man', 'Dig Dug',
+        'River Raid', 'Mario Bros.', 'Donkey Kong', 'Centipede', 'Pitfall II',
+        'Atlantis', 'Combat', 'Pole Position', 'Kaboom!', 'Moon Patrol',
+      ],
+      sales: [4.31, 2.13, 1.97, 1.65, 1.64, 1.60, 1.59, 1.46, 1.36, 1.31, 1.27, 1.25, 1.18, 1.15, 1.12],
+    };
+
+    // ranked individual title sales, descending — used to compute Pareto curve
+    const rankedSales = [
+      4.31, 2.13, 1.97, 1.65, 1.64, 1.60, 1.59, 1.46, 1.36, 1.31,
+      1.27, 1.25, 1.18, 1.15, 1.12, 1.10, 1.10, 1.08, 1.05, 1.00,
+      0.98, 0.87, 0.82, 0.78, 0.78, 0.77, 0.77, 0.73, 0.72, 0.66,
+      0.65, 0.62, 0.60, 0.55, 0.53, 0.51, 0.51, 0.50, 0.50, 0.50,
+      0.50, 0.49, 0.48, 0.47, 0.47, 0.46, 0.46, 0.45, 0.45, 0.45,
+      0.45, 0.44, 0.43, 0.42, 0.40, 0.39, 0.38, 0.38, 0.37, 0.34,
+      0.34, 0.34, 0.31, 0.29, 0.29, 0.27, 0.27, 0.27, 0.26, 0.26,
+      0.25, 0.24, 0.24, 0.22, 0.22, 0.22, 0.21, 0.21, 0.21, 0.20,
+      0.20, 0.20, 0.19, 0.19, 0.18, 0.18, 0.17, 0.16, 0.15, 0.15,
+      0.15, 0.15, 0.14, 0.14, 0.13, 0.13, 0.12, 0.12, 0.11, 0.10,
+      0.10, 0.10, 0.10, 0.10, 0.09, 0.09, 0.09, 0.08, 0.08, 0.08,
+      0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.08, 0.07, 0.07, 0.07,
+      0.07, 0.07, 0.07, 0.07, 0.07,
+    ];
+
+    // build cumulative % curve for Pareto chart
+    const totalSales = rankedSales.reduce((sum, v) => sum + v, 0);
+    let runningTotal = 0;
+    const paretoCurve = rankedSales.map((value) => {
+      runningTotal += value;
+      return +((runningTotal / totalSales) * 100).toFixed(1);
+    });
+    const gameRanks = rankedSales.map((_, i) => i + 1);
+
+    // America's share of sales, per publisher
+    const americaShare = {
+      publishers: ['Atari', 'Activision', 'Imagic', 'Coleco', 'Mattel', 'Parker Bros'],
+      values:     [93.3, 93.5, 93.6, 93.5, 93.2, 93.5],
+    };
+
+    // titles released vs total sales — one bubble per publisher
+    const titlesVsSales = [
+      { x: 128, y: 34.72, label: 'Atari',      color: palette.blue   },
+      { x:  47, y: 15.26, label: 'Activision', color: palette.green  },
+      { x:  16, y:  4.82, label: 'Imagic',     color: palette.coral  },
+      { x:  12, y:  4.03, label: 'Coleco',     color: palette.pink   },
+      { x:  17, y:  2.92, label: 'Mattel',     color: palette.amber  },
+      { x:  20, y:  2.77, label: 'Parker',     color: palette.gray   },
+      { x:  69, y:  2.55, label: 'Unknown',    color: palette.purple },
+      { x:  17, y:  1.94, label: 'Fox',        color: palette.teal   },
+    ];
+
+    // peak year breakdown (1982)
+    const peakYearMix = {
+      labels: ['Atari', 'Imagic', 'Activision', 'Coleco', 'Mattel', 'Other'],
+      values: [8.26, 4.82, 4.11, 2.79, 2.53, 8.48],
+    };
+
+    /* ─── CHARTS ───────────────────────────────────────────────────── */
+
+    // 1. publisher market share — doughnut
+    new Chart(document.getElementById('chartPublisherShare'), {
+      type: 'doughnut',
+      data: {
+        labels: publisherShare.labels,
+        datasets: [{
+          data: publisherShare.values,
+          backgroundColor: [palette.blue, palette.green, palette.coral, palette.pink, palette.amber, palette.gray],
+          borderColor: palette.panel,
+          borderWidth: 2,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        cutout: '60%',
+        plugins: {
+          legend: { display: true, position: 'bottom', labels: { color: palette.muted, font: { size: 10 }, boxWidth: 10 } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw}%` } },
+        },
+      },
+    });
+
+    // 2. annual sales — vertical bar
+    new Chart(document.getElementById('chartAnnualSales'), {
+      type: 'bar',
+      data: {
+        labels: annualSales.years,
+        datasets: [{ data: annualSales.values, backgroundColor: palette.accent, borderRadius: 3 }],
+      },
+      options: {
+        ...baseOptions,
+        scales: {
+          x: axisStyle,
+          y: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: fmt.millions } },
+        },
+      },
+    });
+
+    // 3. regional sales — horizontal bar
+    new Chart(document.getElementById('chartRegional'), {
+      type: 'bar',
+      data: {
+        labels: regional.labels,
+        datasets: [{
+          data: regional.values,
+          backgroundColor: [palette.blue, palette.green, palette.coral],
+          borderRadius: 3,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        indexAxis: 'y',
+        scales: {
+          x: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: fmt.millions } },
+          y: { ticks: { color: palette.muted, font: { size: 11 } }, grid: { display: false } },
+        },
+      },
+    });
+
+    // 4. Atari vs third-party — stacked bar
+    new Chart(document.getElementById('chartFirstVsThirdParty'), {
+      type: 'bar',
+      data: {
+        labels: firstVsThird.years,
+        datasets: [
+          { label: 'Atari',       data: firstVsThird.atari,      backgroundColor: palette.blue,   borderRadius: 2 },
+          { label: 'Third-party', data: firstVsThird.thirdParty, backgroundColor: palette.orange, borderRadius: 2 },
+        ],
+      },
+      options: {
+        ...baseOptions,
+        plugins: { legend: { display: true, position: 'top', labels: { color: palette.muted, font: { size: 10 }, boxWidth: 10 } } },
+        scales: {
+          x: { ...axisStyle, stacked: true },
+          y: { ...axisStyle, stacked: true, ticks: { ...axisStyle.ticks, callback: fmt.millions } },
+        },
+      },
+    });
+
+    // 5. sales distribution histogram
+    new Chart(document.getElementById('chartSalesDistribution'), {
+      type: 'bar',
+      data: {
+        labels: distribution.bands,
+        datasets: [{ data: distribution.counts, backgroundColor: palette.accent, borderRadius: 3 }],
+      },
+      options: {
+        ...baseOptions,
+        scales: {
+          x: { ...axisStyle, ticks: { ...axisStyle.ticks, font: { size: 9 } } },
+          y: axisStyle,
+        },
+      },
+    });
+
+    // 6. top 15 games — horizontal bar
+    new Chart(document.getElementById('chartTopGames'), {
+      type: 'bar',
+      data: {
+        labels: topGames.names,
+        datasets: [{ data: topGames.sales, backgroundColor: palette.accent, borderRadius: 3 }],
+      },
+      options: {
+        ...baseOptions,
+        indexAxis: 'y',
+        scales: {
+          x: { ...axisStyle, ticks: { ...axisStyle.ticks, callback: fmt.millions } },
+          y: { ticks: { color: palette.muted, font: { size: 10 } }, grid: { display: false } },
+        },
+      },
+    });
+
+    // 7. Pareto curve — line
+    new Chart(document.getElementById('chartPareto'), {
+      type: 'line',
+      data: {
+        labels: gameRanks,
+        datasets: [{
+          data: paretoCurve,
+          borderColor: palette.accent,
+          backgroundColor: 'rgba(55, 138, 221, 0.08)',
+          fill: true,
+          tension: 0.3,
+          pointRadius: 0,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        scales: {
+          x: {
+            ...axisStyle,
+            title: { display: true, text: 'Game rank', color: palette.muted, font: { size: 10 } },
+            ticks: { ...axisStyle.ticks, font: { size: 9 }, maxTicksLimit: 10 },
+          },
+          y: {
+            ...axisStyle,
+            title: { display: true, text: 'Cumulative %', color: palette.muted, font: { size: 10 } },
+            ticks: { ...axisStyle.ticks, callback: fmt.percent },
+          },
+        },
+      },
+    });
+
+    // 8. America's share per publisher
+    new Chart(document.getElementById('chartAmericaShare'), {
+      type: 'bar',
+      data: {
+        labels: americaShare.publishers,
+        datasets: [{ data: americaShare.values, backgroundColor: palette.blue, borderRadius: 3 }],
+      },
+      options: {
+        ...baseOptions,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: (ctx) => `${ctx.raw}%` } } },
+        scales: {
+          x: axisStyle,
+          y: { ...axisStyle, min: 88, max: 96, ticks: { ...axisStyle.ticks, callback: fmt.percent } },
+        },
+      },
+    });
+
+    // 9. titles released vs total sales — scatter
+    new Chart(document.getElementById('chartTitlesVsSales'), {
+      type: 'scatter',
+      data: {
+        datasets: [{
+          data: titlesVsSales,
+          backgroundColor: titlesVsSales.map((p) => p.color),
+          pointRadius: 8,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.raw.label}: ${ctx.raw.x} titles, ${ctx.raw.y}M` } },
+        },
+        scales: {
+          x: { ...axisStyle, title: { display: true, text: 'Titles released',  color: palette.muted, font: { size: 10 } } },
+          y: { ...axisStyle, title: { display: true, text: 'Total sales (M)', color: palette.muted, font: { size: 10 } },
+               ticks: { ...axisStyle.ticks, callback: fmt.millions } },
+        },
+      },
+    });
+
+    // 10. peak year publisher mix — pie
+    new Chart(document.getElementById('chartPeakYear'), {
+      type: 'pie',
+      data: {
+        labels: peakYearMix.labels,
+        datasets: [{
+          data: peakYearMix.values,
+          backgroundColor: [palette.blue, palette.green, palette.orange, palette.pink, palette.amber, palette.gray],
+          borderColor: palette.panel,
+          borderWidth: 2,
+        }],
+      },
+      options: {
+        ...baseOptions,
+        plugins: {
+          legend: { display: true, position: 'right', labels: { color: palette.muted, font: { size: 10 }, boxWidth: 10 } },
+          tooltip: { callbacks: { label: (ctx) => `${ctx.label}: ${ctx.raw.toFixed(2)}M` } },
+        },
+      },
+    });
+  </script>
+</body>
+</html>
