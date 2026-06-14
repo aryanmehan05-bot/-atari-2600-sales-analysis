@@ -7,7 +7,7 @@
 
 ## Live demo
 
-🔗 [View the dashboard](https://aryanmehan05-bot.github.io/atari-2600-sales-analysis/atari2600_sales_dashboard.html)
+🔗 [View the dashboard](https://aryanmehan05-bot.github.io/-atari-2600-sales-analysis/atari2600_sales_dashboard.html)
 
 ![Dashboard screenshot](dashboard.png)
 
